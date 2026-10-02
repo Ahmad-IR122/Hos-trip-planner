@@ -20,6 +20,13 @@ env = environ.Env()
 
 environ.Env.read_env(BASE_DIR / ".env")
 
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=[
+        "http://localhost:5173",
+    ],
+)
+
 OPENROUTESERVICE_API_KEY = env("OPENROUTESERVICE_API_KEY", default="")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/

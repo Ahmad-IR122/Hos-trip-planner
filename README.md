@@ -1,6 +1,8 @@
 # 🚛 HOS Trip Planner
 
- A full-stack truck trip planning application that calculates routes, applies Hours of Service (HOS) rules, generates required stops and rest periods, and creates daily ELD log sheets.
+<p style="color: white;">
+A full-stack truck trip planning application that calculates routes, applies Hours of Service (HOS) rules, generates required stops and rest periods, and creates daily ELD log sheets.
+</p>
 
 ---
 
@@ -48,16 +50,16 @@ The system then calculates the route, builds an HOS-aware schedule, and generate
 
 ## 🛠️ Tech Stack
 
-| Layer | Technologies |
-|---|---|
-| 🎨 Frontend | React, TypeScript, Vite, Material UI |
-| 🌍 Maps | React Leaflet, OpenStreetMap |
-| 🔌 API Client | Axios |
-| 🧠 Backend | Python, Django, Django REST Framework |
-| 🗺️ Routing | OpenRouteService |
-| 🔐 Config | django-environ |
-| 🌐 CORS | django-cors-headers |
-| 🚀 Production Server | Gunicorn |
+| Layer                | Technologies                          |
+| -------------------- | ------------------------------------- |
+| 🎨 Frontend          | React, TypeScript, Vite, Material UI  |
+| 🌍 Maps              | React Leaflet, OpenStreetMap          |
+| 🔌 API Client        | Axios                                 |
+| 🧠 Backend           | Python, Django, Django REST Framework |
+| 🗺️ Routing           | OpenRouteService                      |
+| 🔐 Config            | django-environ                        |
+| 🌐 CORS              | django-cors-headers                   |
+| 🚀 Production Server | Gunicorn                              |
 
 ---
 
@@ -119,15 +121,15 @@ The scheduling logic also handles:
 
 ## ⛽ Trip Events
 
-| Event | Duty Status |
-|---|---|
-| 🚚 Driving | Driving |
-| 📦 Pickup | On Duty Not Driving |
-| 📍 Dropoff | On Duty Not Driving |
-| ⛽ Fuel | On Duty Not Driving |
-| ☕ 30-Minute Break | Off Duty |
-| 🛏️ 10-Hour Rest | Sleeper Berth |
-| 🔄 34-Hour Restart | Sleeper Berth |
+| Event              | Duty Status         |
+| ------------------ | ------------------- |
+| 🚚 Driving         | Driving             |
+| 📦 Pickup          | On Duty Not Driving |
+| 📍 Dropoff         | On Duty Not Driving |
+| ⛽ Fuel            | On Duty Not Driving |
+| ☕ 30-Minute Break | Off Duty            |
+| 🛏️ 10-Hour Rest    | Sleeper Berth       |
+| 🔄 34-Hour Restart | Sleeper Berth       |
 
 ---
 
