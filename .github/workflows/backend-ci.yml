@@ -5,6 +5,7 @@ on:
     paths:
       - "backend/**"
       - ".github/workflows/backend-ci.yml"
+
   pull_request:
     paths:
       - "backend/**"
@@ -17,6 +18,9 @@ jobs:
     defaults:
       run:
         working-directory: backend
+
+    env:
+      OPENROUTESERVICE_API_KEY: ${{ secrets.OPENROUTESERVICE_API_KEY }}
 
     steps:
       - name: Checkout repository
@@ -43,5 +47,3 @@ jobs:
       - name: Run tests
         run: |
           python manage.py test
-    env:
-  OPENROUTESERVICE_API_KEY: ${{ secrets.OPENROUTESERVICE_API_KEY }}

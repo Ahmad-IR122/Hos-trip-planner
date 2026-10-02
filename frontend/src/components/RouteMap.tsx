@@ -4,6 +4,7 @@ import {
   Polyline,
   Popup,
   TileLayer,
+  Tooltip,
 } from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
@@ -17,6 +18,11 @@ type RouteMapProps = {
     pickup: number[];
     dropoff: number[];
   };
+  locations: {
+    current: string;
+    pickup: string;
+    dropoff: string;
+  };
 };
 
 function toLeafletPosition(coords: number[]): Coordinates {
@@ -26,9 +32,10 @@ function toLeafletPosition(coords: number[]): Coordinates {
 export const RouteMap = ({
   coordinates,
   waypoints,
+  locations,
 }: RouteMapProps) => {
-  const routePositions: Coordinates[] = coordinates.map(
-    (coords) => toLeafletPosition(coords),
+  const routePositions: Coordinates[] = coordinates.map((coords) =>
+    toLeafletPosition(coords),
   );
 
   const current = toLeafletPosition(waypoints.current);
@@ -37,8 +44,10 @@ export const RouteMap = ({
 
   return (
     <MapContainer
-      center={current}
-      zoom={6}
+      bounds={routePositions}
+      boundsOptions={{
+        padding: [10, 10],
+      }}
       style={{
         height: "500px",
         width: "100%",
@@ -53,17 +62,42 @@ export const RouteMap = ({
       <Polyline positions={routePositions} />
 
       <Marker position={current}>
-        <Popup>Current Location</Popup>
+        <Tooltip permanent direction="top" offset={[0, -20]}>
+          {locations.current}
+        </Tooltip>
+
+        <Popup>
+          <strong>Current Location</strong>
+          <br />
+          {locations.current}
+        </Popup>
       </Marker>
 
       <Marker position={pickup}>
-        <Popup>Pickup Location</Popup>
+        <Tooltip permanent direction="top" offset={[0, -20]}>
+          {locations.pickup}
+        </Tooltip>
+
+        <Popup>
+          <strong>Pickup Location</strong>
+          <br />
+          {locations.pickup}
+        </Popup>
       </Marker>
 
       <Marker position={dropoff}>
-        <Popup>Dropoff Location</Popup>
+        <Tooltip permanent direction="top" offset={[0, -20]}>
+          {locations.dropoff}
+        </Tooltip>
+
+        <Popup>
+          <strong>Dropoff Location</strong>
+          <br />
+          {locations.dropoff}
+        </Popup>
       </Marker>
     </MapContainer>
   );
-}
+};
 
+// export default RouteMap;

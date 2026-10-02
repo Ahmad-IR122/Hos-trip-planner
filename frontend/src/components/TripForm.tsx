@@ -21,6 +21,13 @@ type TripFormData = {
   current_cycle_used: string;
 };
 
+type TripData = {
+  current_location: string;
+  pickup_location: string;
+  dropoff_location: string;
+  current_cycle_used: number;
+};
+
 type RouteData = {
   distance_miles: number;
   duration_hours: number;
@@ -42,15 +49,22 @@ const initialForm: TripFormData = {
 function TripForm() {
   const [formData, setFormData] = useState<TripFormData>(initialForm);
 
+  const [trip, setTrip] = useState<TripData | null>(null);
+  const [route, setRoute] = useState<RouteData | null>(null);
+
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [route, setRoute] = useState<RouteData | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const { name, value } = e.target;
 
-    if (name === "current_cycle_used" && !/^\d*$/.test(value)) {
+    if (
+      name === "current_cycle_used" &&
+      !/^\d*$/.test(value)
+    ) {
       return;
     }
 
@@ -60,17 +74,23 @@ function TripForm() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent,
+  ) => {
     e.preventDefault();
 
     setMessage("");
     setError("");
     setLoading(true);
 
-    const cycleUsed = Number(formData.current_cycle_used);
+    const cycleUsed = Number(
+      formData.current_cycle_used,
+    );
 
     if (cycleUsed < 0 || cycleUsed > 70) {
-      setError("Current cycle used must be between 0 and 70 hours.");
+      setError(
+        "Current cycle used must be between 0 and 70 hours.",
+      );
       setLoading(false);
       return;
     }
@@ -81,15 +101,21 @@ function TripForm() {
     };
 
     try {
-      const response = await api.post("/plan-trip/", payload);
+      const response = await api.post(
+        "/plan-trip/",
+        payload,
+      );
 
       setMessage(response.data.message);
+
+      setTrip(response.data.trip);
       setRoute(response.data.route);
 
       setFormData(initialForm);
     } catch (err) {
       console.error(err);
 
+      setTrip(null);
       setRoute(null);
 
       setError(
@@ -112,7 +138,8 @@ function TripForm() {
         <Card
           sx={{
             borderRadius: 4,
-            boxShadow: "0 12px 35px rgba(0, 0, 0, 0.08)",
+            boxShadow:
+              "0 12px 35px rgba(0, 0, 0, 0.08)",
           }}
         >
           <CardContent
@@ -144,11 +171,15 @@ function TripForm() {
                 mb: 4,
               }}
             >
-              Enter your trip details to calculate your route, required stops,
-              and driving schedule.
+              Enter your trip details to calculate
+              your route, required stops, and driving
+              schedule.
             </Typography>
 
-            <Box component="form" onSubmit={handleSubmit}>
+            <Box
+              component="form"
+              onSubmit={handleSubmit}
+            >
               <Stack spacing={2.5}>
                 <TextField
                   fullWidth
@@ -210,23 +241,34 @@ function TripForm() {
                     fontSize: "1rem",
                   }}
                 >
-                  {loading ? "Planning..." : "Plan Trip"}
+                  {loading
+                    ? "Planning..."
+                    : "Plan Trip"}
                 </Button>
 
-                {message && <Alert severity="success">{message}</Alert>}
+                {message && (
+                  <Alert severity="success">
+                    {message}
+                  </Alert>
+                )}
 
-                {error && <Alert severity="error">{error}</Alert>}
+                {error && (
+                  <Alert severity="error">
+                    {error}
+                  </Alert>
+                )}
               </Stack>
             </Box>
           </CardContent>
         </Card>
 
-        {route && (
+        {route && trip && (
           <Card
             sx={{
               mt: 4,
               borderRadius: 4,
-              boxShadow: "0 12px 35px rgba(0, 0, 0, 0.08)",
+              boxShadow:
+                "0 12px 35px rgba(0, 0, 0, 0.08)",
             }}
           >
             <CardContent
@@ -259,7 +301,10 @@ function TripForm() {
                 }}
               >
                 <Box>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                  >
                     Distance
                   </Typography>
 
@@ -274,7 +319,10 @@ function TripForm() {
                 </Box>
 
                 <Box>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                  >
                     Estimated Driving Time
                   </Typography>
 
@@ -292,6 +340,11 @@ function TripForm() {
               <RouteMap
                 coordinates={route.coordinates}
                 waypoints={route.waypoints}
+                locations={{
+                  current: trip.current_location,
+                  pickup: trip.pickup_location,
+                  dropoff: trip.dropoff_location,
+                }}
               />
             </CardContent>
           </Card>
