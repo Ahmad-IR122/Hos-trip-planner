@@ -12,12 +12,24 @@ import {
 } from "@mui/material";
 
 import api from "../api/api";
+import { RouteMap } from "./RouteMap";
 
 type TripFormData = {
   current_location: string;
   pickup_location: string;
   dropoff_location: string;
   current_cycle_used: string;
+};
+
+type RouteData = {
+  distance_miles: number;
+  duration_hours: number;
+  coordinates: number[][];
+  waypoints: {
+    current: number[];
+    pickup: number[];
+    dropoff: number[];
+  };
 };
 
 const initialForm: TripFormData = {
@@ -27,13 +39,20 @@ const initialForm: TripFormData = {
   current_cycle_used: "",
 };
 
-const TripForm = () => {
+function TripForm() {
   const [formData, setFormData] = useState<TripFormData>(initialForm);
+
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [route, setRoute] = useState<RouteData | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+
+    if (name === "current_cycle_used" && !/^\d*$/.test(value)) {
+      return;
+    }
 
     setFormData((prev) => ({
       ...prev,
@@ -46,22 +65,38 @@ const TripForm = () => {
 
     setMessage("");
     setError("");
+    setLoading(true);
+
+    const cycleUsed = Number(formData.current_cycle_used);
+
+    if (cycleUsed < 0 || cycleUsed > 70) {
+      setError("Current cycle used must be between 0 and 70 hours.");
+      setLoading(false);
+      return;
+    }
 
     const payload = {
       ...formData,
-      current_cycle_used: Number(formData.current_cycle_used),
+      current_cycle_used: cycleUsed,
     };
 
     try {
       const response = await api.post("/plan-trip/", payload);
 
       setMessage(response.data.message);
+      setRoute(response.data.route);
 
       setFormData(initialForm);
     } catch (err) {
       console.error(err);
 
-      setError("Failed to plan trip. Please try again.");
+      setRoute(null);
+
+      setError(
+        "Failed to calculate the trip. Please check your locations and try again.",
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -70,13 +105,10 @@ const TripForm = () => {
       sx={{
         minHeight: "100vh",
         backgroundColor: "#f5f7fb",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
         py: 6,
       }}
     >
-      <Container maxWidth="sm">
+      <Container maxWidth="md">
         <Card
           sx={{
             borderRadius: 4,
@@ -125,6 +157,7 @@ const TripForm = () => {
                   name="current_location"
                   value={formData.current_location}
                   onChange={handleChange}
+                  placeholder="Chicago"
                 />
 
                 <TextField
@@ -134,6 +167,7 @@ const TripForm = () => {
                   name="pickup_location"
                   value={formData.pickup_location}
                   onChange={handleChange}
+                  placeholder="Detroit"
                 />
 
                 <TextField
@@ -143,6 +177,7 @@ const TripForm = () => {
                   name="dropoff_location"
                   value={formData.dropoff_location}
                   onChange={handleChange}
+                  placeholder="New York"
                 />
 
                 <TextField
@@ -161,10 +196,12 @@ const TripForm = () => {
                     },
                   }}
                 />
+
                 <Button
                   type="submit"
                   variant="contained"
                   size="large"
+                  disabled={loading}
                   sx={{
                     py: 1.4,
                     borderRadius: 2.5,
@@ -173,7 +210,7 @@ const TripForm = () => {
                     fontSize: "1rem",
                   }}
                 >
-                  Plan Trip
+                  {loading ? "Planning..." : "Plan Trip"}
                 </Button>
 
                 {message && <Alert severity="success">{message}</Alert>}
@@ -183,9 +220,85 @@ const TripForm = () => {
             </Box>
           </CardContent>
         </Card>
+
+        {route && (
+          <Card
+            sx={{
+              mt: 4,
+              borderRadius: 4,
+              boxShadow: "0 12px 35px rgba(0, 0, 0, 0.08)",
+            }}
+          >
+            <CardContent
+              sx={{
+                p: {
+                  xs: 3,
+                  md: 4,
+                },
+              }}
+            >
+              <Typography
+                component="h2"
+                variant="h5"
+                sx={{
+                  fontWeight: 700,
+                  mb: 2,
+                }}
+              >
+                Trip Route
+              </Typography>
+
+              <Stack
+                direction={{
+                  xs: "column",
+                  sm: "row",
+                }}
+                spacing={3}
+                sx={{
+                  mb: 3,
+                }}
+              >
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Distance
+                  </Typography>
+
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 700,
+                    }}
+                  >
+                    {route.distance_miles} miles
+                  </Typography>
+                </Box>
+
+                <Box>
+                  <Typography variant="body2" color="text.secondary">
+                    Estimated Driving Time
+                  </Typography>
+
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      fontWeight: 700,
+                    }}
+                  >
+                    {route.duration_hours} hours
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <RouteMap
+                coordinates={route.coordinates}
+                waypoints={route.waypoints}
+              />
+            </CardContent>
+          </Card>
+        )}
       </Container>
     </Box>
   );
-};
+}
 
 export default TripForm;
