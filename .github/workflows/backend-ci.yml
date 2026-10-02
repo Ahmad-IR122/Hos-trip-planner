@@ -47,5 +47,3 @@ jobs:
       - name: Run tests
         run: |
           python manage.py test
-    env:
-  OPENROUTESERVICE_API_KEY: ${{ secrets.OPENROUTESERVICE_API_KEY }}
