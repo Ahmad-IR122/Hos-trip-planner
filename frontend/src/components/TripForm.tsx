@@ -13,13 +13,15 @@ import {
 } from "@mui/material";
 
 import api from "../api/api";
-import { RouteMap } from "./RouteMap";
+import {RouteMap} from "./RouteMap";
+import EldLogs from "./EldLogs";
 
 import type {
-  TripFormData,
-  TripData,
+  EldDayLog,
   RouteData,
   ScheduleItem,
+  TripData,
+  TripFormData,
 } from "../types/trips";
 
 const initialForm: TripFormData = {
@@ -70,22 +72,34 @@ function formatDuration(hours: number): string {
 }
 
 function TripForm() {
-  const [formData, setFormData] = useState<TripFormData>(initialForm);
+  const [formData, setFormData] =
+    useState<TripFormData>(initialForm);
 
-  const [trip, setTrip] = useState<TripData | null>(null);
+  const [trip, setTrip] =
+    useState<TripData | null>(null);
 
-  const [route, setRoute] = useState<RouteData | null>(null);
+  const [route, setRoute] =
+    useState<RouteData | null>(null);
 
-  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+  const [schedule, setSchedule] =
+    useState<ScheduleItem[]>([]);
+
+  const [eldLogs, setEldLogs] =
+    useState<EldDayLog[]>([]);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const { name, value } = e.target;
 
-    if (name === "current_cycle_used" && !/^\d*$/.test(value)) {
+    if (
+      name === "current_cycle_used" &&
+      !/^\d*$/.test(value)
+    ) {
       return;
     }
 
@@ -95,17 +109,23 @@ function TripForm() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent,
+  ) => {
     e.preventDefault();
 
     setMessage("");
     setError("");
     setLoading(true);
 
-    const cycleUsed = Number(formData.current_cycle_used);
+    const cycleUsed = Number(
+      formData.current_cycle_used,
+    );
 
     if (cycleUsed < 0 || cycleUsed > 70) {
-      setError("Current cycle used must be between 0 and 70 hours.");
+      setError(
+        "Current cycle used must be between 0 and 70 hours.",
+      );
 
       setLoading(false);
       return;
@@ -117,13 +137,17 @@ function TripForm() {
     };
 
     try {
-      const response = await api.post("/plan-trip/", payload);
+      const response = await api.post(
+        "/plan-trip/",
+        payload,
+      );
 
       setMessage(response.data.message);
 
       setTrip(response.data.trip);
       setRoute(response.data.route);
       setSchedule(response.data.schedule);
+      setEldLogs(response.data.eld_logs);
 
       setFormData(initialForm);
     } catch (err) {
@@ -132,6 +156,7 @@ function TripForm() {
       setTrip(null);
       setRoute(null);
       setSchedule([]);
+      setEldLogs([]);
 
       setError(
         "Failed to calculate the trip. Please check your locations and try again.",
@@ -153,7 +178,8 @@ function TripForm() {
         <Card
           sx={{
             borderRadius: 4,
-            boxShadow: "0 12px 35px rgba(0, 0, 0, 0.08)",
+            boxShadow:
+              "0 12px 35px rgba(0, 0, 0, 0.08)",
           }}
         >
           <CardContent
@@ -184,11 +210,15 @@ function TripForm() {
                 mb: 4,
               }}
             >
-              Enter your trip details to calculate your route, required stops,
-              and driving schedule.
+              Enter your trip details to calculate
+              your route, required stops, driving
+              schedule, and ELD logs.
             </Typography>
 
-            <Box component="form" onSubmit={handleSubmit}>
+            <Box
+              component="form"
+              onSubmit={handleSubmit}
+            >
               <Stack spacing={2.5}>
                 <TextField
                   fullWidth
@@ -250,12 +280,22 @@ function TripForm() {
                     fontSize: "1rem",
                   }}
                 >
-                  {loading ? "Planning..." : "Plan Trip"}
+                  {loading
+                    ? "Planning..."
+                    : "Plan Trip"}
                 </Button>
 
-                {message && <Alert severity="success">{message}</Alert>}
+                {message && (
+                  <Alert severity="success">
+                    {message}
+                  </Alert>
+                )}
 
-                {error && <Alert severity="error">{error}</Alert>}
+                {error && (
+                  <Alert severity="error">
+                    {error}
+                  </Alert>
+                )}
               </Stack>
             </Box>
           </CardContent>
@@ -266,7 +306,8 @@ function TripForm() {
             sx={{
               mt: 4,
               borderRadius: 4,
-              boxShadow: "0 12px 35px rgba(0, 0, 0, 0.08)",
+              boxShadow:
+                "0 12px 35px rgba(0, 0, 0, 0.08)",
             }}
           >
             <CardContent
@@ -299,7 +340,10 @@ function TripForm() {
                 }}
               >
                 <Box>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                  >
                     Distance
                   </Typography>
 
@@ -314,7 +358,10 @@ function TripForm() {
                 </Box>
 
                 <Box>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                  >
                     Estimated Driving Time
                   </Typography>
 
@@ -347,7 +394,8 @@ function TripForm() {
             sx={{
               mt: 4,
               borderRadius: 4,
-              boxShadow: "0 12px 35px rgba(0, 0, 0, 0.08)",
+              boxShadow:
+                "0 12px 35px rgba(0, 0, 0, 0.08)",
             }}
           >
             <CardContent
@@ -370,65 +418,88 @@ function TripForm() {
               </Typography>
 
               <Stack spacing={1.5}>
-                {schedule.map((item, index) => (
-                  <Box
-                    key={index}
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 2,
-                      p: 2,
-                      borderRadius: 2,
-                      backgroundColor: "#f5f7fb",
-                    }}
-                  >
-                    <Box>
-                      <Typography
-                        sx={{
-                          fontWeight: 600,
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {item.type.replace("_", " ")}
-                      </Typography>
-
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          textTransform: "capitalize",
-                        }}
-                      >
-                        {item.status.replace("_", " ")}
-                      </Typography>
-                    </Box>
-
+                {schedule.map(
+                  (item, index) => (
                     <Box
+                      key={index}
                       sx={{
-                        textAlign: "right",
+                        display: "flex",
+                        justifyContent:
+                          "space-between",
+                        alignItems: "center",
+                        gap: 2,
+                        p: 2,
+                        borderRadius: 2,
+                        backgroundColor:
+                          "#f5f7fb",
                       }}
                     >
-                      <Typography
+                      <Box>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+                            textTransform:
+                              "capitalize",
+                          }}
+                        >
+                          {item.type.replace(
+                            "_",
+                            " ",
+                          )}
+                        </Typography>
+
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            textTransform:
+                              "capitalize",
+                          }}
+                        >
+                          {item.status.replace(
+                            "_",
+                            " ",
+                          )}
+                        </Typography>
+                      </Box>
+
+                      <Box
                         sx={{
-                          fontWeight: 600,
+                          textAlign: "right",
                         }}
                       >
-                        {formatHour(item.start_hour)}
-                        {" → "}
-                        {formatHour(item.end_hour)}
-                      </Typography>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+                          }}
+                        >
+                          {formatHour(
+                            item.start_hour,
+                          )}
+                          {" → "}
+                          {formatHour(
+                            item.end_hour,
+                          )}
+                        </Typography>
 
-                      <Typography variant="body2" color="text.secondary">
-                        {formatDuration(item.duration_hours)}
-                      </Typography>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                        >
+                          {formatDuration(
+                            item.duration_hours,
+                          )}
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Box>
-                ))}
+                  ),
+                )}
               </Stack>
             </CardContent>
           </Card>
         )}
+
+        <EldLogs logs={eldLogs} />
       </Container>
     </Box>
   );
