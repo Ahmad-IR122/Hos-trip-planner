@@ -1,6 +1,6 @@
 # 🚛 HOS Trip Planner
 
-> A full-stack truck trip planning application that calculates routes, applies Hours of Service (HOS) rules, generates required stops and rest periods, and creates daily ELD log sheets.
+ A full-stack truck trip planning application that calculates routes, applies Hours of Service (HOS) rules, generates required stops and rest periods, and creates daily ELD log sheets.
 
 ---
 
