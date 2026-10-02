@@ -1,16 +1,8 @@
-from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from .services.routing_service import get_route
-
-# Create your views here.
-
-
-def health_check(request):
-    return JsonResponse(
-        {"status": "ok", "message": "Frontend connected to Django backend"}
-    )
+from .services.hos_service import generate_trip_schedule
 
 
 @api_view(["POST"])
@@ -35,10 +27,18 @@ def plan_trip(request):
         )
 
     try:
+        current_cycle_used = float(current_cycle_used)
+
         route = get_route(
             current_location,
             pickup_location,
             dropoff_location,
+        )
+
+        schedule = generate_trip_schedule(
+            duration_hours=route["duration_hours"],
+            distance_miles=route["distance_miles"],
+            current_cycle_used=current_cycle_used,
         )
 
         return Response(
@@ -51,12 +51,13 @@ def plan_trip(request):
                     "current_cycle_used": current_cycle_used,
                 },
                 "route": route,
+                "schedule": schedule,
             }
         )
 
-    except ValueError as error:
+    except (TypeError, ValueError):
         return Response(
-            {"error": str(error)},
+            {"error": "Invalid trip data."},
             status=400,
         )
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
   Alert,
   Box,
@@ -14,30 +15,12 @@ import {
 import api from "../api/api";
 import { RouteMap } from "./RouteMap";
 
-type TripFormData = {
-  current_location: string;
-  pickup_location: string;
-  dropoff_location: string;
-  current_cycle_used: string;
-};
-
-type TripData = {
-  current_location: string;
-  pickup_location: string;
-  dropoff_location: string;
-  current_cycle_used: number;
-};
-
-type RouteData = {
-  distance_miles: number;
-  duration_hours: number;
-  coordinates: number[][];
-  waypoints: {
-    current: number[];
-    pickup: number[];
-    dropoff: number[];
-  };
-};
+import type {
+  TripFormData,
+  TripData,
+  RouteData,
+  ScheduleItem,
+} from "../types/trips";
 
 const initialForm: TripFormData = {
   current_location: "",
@@ -46,25 +29,63 @@ const initialForm: TripFormData = {
   current_cycle_used: "",
 };
 
+function formatHour(totalHours: number): string {
+  const day = Math.floor(totalHours / 24) + 1;
+  const hoursInDay = totalHours % 24;
+
+  let hour = Math.floor(hoursInDay);
+  let minutes = Math.round((hoursInDay - hour) * 60);
+
+  if (minutes === 60) {
+    hour += 1;
+    minutes = 0;
+  }
+
+  hour %= 24;
+
+  const period = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+
+  const displayMinutes = minutes
+    .toString()
+    .padStart(2, "0");
+
+  return `Day ${day} - ${displayHour}:${displayMinutes} ${period}`;
+}
+
+function formatDuration(hours: number): string {
+  if (hours === 1) {
+    return "1 hour";
+  }
+
+  if (hours < 1) {
+    const minutes = Math.round(hours * 60);
+
+    return `${minutes} ${
+      minutes === 1 ? "minute" : "minutes"
+    }`;
+  }
+
+  return `${hours} hours`;
+}
+
 function TripForm() {
   const [formData, setFormData] = useState<TripFormData>(initialForm);
 
   const [trip, setTrip] = useState<TripData | null>(null);
+
   const [route, setRoute] = useState<RouteData | null>(null);
+
+  const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
-    if (
-      name === "current_cycle_used" &&
-      !/^\d*$/.test(value)
-    ) {
+    if (name === "current_cycle_used" && !/^\d*$/.test(value)) {
       return;
     }
 
@@ -74,23 +95,18 @@ function TripForm() {
     }));
   };
 
-  const handleSubmit = async (
-    e: React.FormEvent,
-  ) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     setMessage("");
     setError("");
     setLoading(true);
 
-    const cycleUsed = Number(
-      formData.current_cycle_used,
-    );
+    const cycleUsed = Number(formData.current_cycle_used);
 
     if (cycleUsed < 0 || cycleUsed > 70) {
-      setError(
-        "Current cycle used must be between 0 and 70 hours.",
-      );
+      setError("Current cycle used must be between 0 and 70 hours.");
+
       setLoading(false);
       return;
     }
@@ -101,15 +117,13 @@ function TripForm() {
     };
 
     try {
-      const response = await api.post(
-        "/plan-trip/",
-        payload,
-      );
+      const response = await api.post("/plan-trip/", payload);
 
       setMessage(response.data.message);
 
       setTrip(response.data.trip);
       setRoute(response.data.route);
+      setSchedule(response.data.schedule);
 
       setFormData(initialForm);
     } catch (err) {
@@ -117,6 +131,7 @@ function TripForm() {
 
       setTrip(null);
       setRoute(null);
+      setSchedule([]);
 
       setError(
         "Failed to calculate the trip. Please check your locations and try again.",
@@ -138,8 +153,7 @@ function TripForm() {
         <Card
           sx={{
             borderRadius: 4,
-            boxShadow:
-              "0 12px 35px rgba(0, 0, 0, 0.08)",
+            boxShadow: "0 12px 35px rgba(0, 0, 0, 0.08)",
           }}
         >
           <CardContent
@@ -163,7 +177,6 @@ function TripForm() {
             </Typography>
 
             <Typography
-              component="p"
               variant="body2"
               color="text.secondary"
               sx={{
@@ -171,15 +184,11 @@ function TripForm() {
                 mb: 4,
               }}
             >
-              Enter your trip details to calculate
-              your route, required stops, and driving
-              schedule.
+              Enter your trip details to calculate your route, required stops,
+              and driving schedule.
             </Typography>
 
-            <Box
-              component="form"
-              onSubmit={handleSubmit}
-            >
+            <Box component="form" onSubmit={handleSubmit}>
               <Stack spacing={2.5}>
                 <TextField
                   fullWidth
@@ -241,22 +250,12 @@ function TripForm() {
                     fontSize: "1rem",
                   }}
                 >
-                  {loading
-                    ? "Planning..."
-                    : "Plan Trip"}
+                  {loading ? "Planning..." : "Plan Trip"}
                 </Button>
 
-                {message && (
-                  <Alert severity="success">
-                    {message}
-                  </Alert>
-                )}
+                {message && <Alert severity="success">{message}</Alert>}
 
-                {error && (
-                  <Alert severity="error">
-                    {error}
-                  </Alert>
-                )}
+                {error && <Alert severity="error">{error}</Alert>}
               </Stack>
             </Box>
           </CardContent>
@@ -267,8 +266,7 @@ function TripForm() {
             sx={{
               mt: 4,
               borderRadius: 4,
-              boxShadow:
-                "0 12px 35px rgba(0, 0, 0, 0.08)",
+              boxShadow: "0 12px 35px rgba(0, 0, 0, 0.08)",
             }}
           >
             <CardContent
@@ -301,10 +299,7 @@ function TripForm() {
                 }}
               >
                 <Box>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                  >
+                  <Typography variant="body2" color="text.secondary">
                     Distance
                   </Typography>
 
@@ -319,10 +314,7 @@ function TripForm() {
                 </Box>
 
                 <Box>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                  >
+                  <Typography variant="body2" color="text.secondary">
                     Estimated Driving Time
                   </Typography>
 
@@ -346,6 +338,94 @@ function TripForm() {
                   dropoff: trip.dropoff_location,
                 }}
               />
+            </CardContent>
+          </Card>
+        )}
+
+        {schedule.length > 0 && (
+          <Card
+            sx={{
+              mt: 4,
+              borderRadius: 4,
+              boxShadow: "0 12px 35px rgba(0, 0, 0, 0.08)",
+            }}
+          >
+            <CardContent
+              sx={{
+                p: {
+                  xs: 3,
+                  md: 4,
+                },
+              }}
+            >
+              <Typography
+                component="h2"
+                variant="h5"
+                sx={{
+                  fontWeight: 700,
+                  mb: 3,
+                }}
+              >
+                Trip Schedule
+              </Typography>
+
+              <Stack spacing={1.5}>
+                {schedule.map((item, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: 2,
+                      p: 2,
+                      borderRadius: 2,
+                      backgroundColor: "#f5f7fb",
+                    }}
+                  >
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {item.type.replace("_", " ")}
+                      </Typography>
+
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{
+                          textTransform: "capitalize",
+                        }}
+                      >
+                        {item.status.replace("_", " ")}
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        textAlign: "right",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                        }}
+                      >
+                        {formatHour(item.start_hour)}
+                        {" → "}
+                        {formatHour(item.end_hour)}
+                      </Typography>
+
+                      <Typography variant="body2" color="text.secondary">
+                        {formatDuration(item.duration_hours)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                ))}
+              </Stack>
             </CardContent>
           </Card>
         )}
