@@ -33,10 +33,13 @@ function toLeafletPosition(coords: number[]): Coordinates {
 
 const markerIcon = L.icon({
   iconUrl: markerImage,
+  iconRetinaUrl: markerImage,
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
 });
+
+L.Marker.prototype.options.icon = markerIcon;
 
 export const RouteMap = ({
   coordinates,
