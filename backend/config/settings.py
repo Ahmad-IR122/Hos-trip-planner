@@ -24,6 +24,7 @@ CORS_ALLOWED_ORIGINS = env.list(
     "CORS_ALLOWED_ORIGINS",
     default=[
         "http://localhost:5173",
+        "https://hos-trip-planner.netlify.app",
     ],
 )
 
@@ -39,11 +40,14 @@ DEBUG = True
 
 
 
-ALLOWED_HOSTS = [
-    "https://hos-trip-planner.netlify.app/",
-    "localhost",
-    "127.0.0.1",
-]
+ALLOWED_HOSTS = env.list(
+    "ALLOWED_HOSTS",
+    default=[
+        "localhost",
+        "127.0.0.1",
+        "hos-trip-planner-pp81.onrender.com",
+    ],
+)
 
 
 # Application definition
