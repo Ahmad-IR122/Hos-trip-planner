@@ -1,3 +1,4 @@
+import L from "leaflet";
 import {
   MapContainer,
   Marker,
@@ -8,6 +9,7 @@ import {
 } from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
+import markerImage from "../assets/marker.svg";
 
 type Coordinates = [number, number];
 
@@ -28,6 +30,13 @@ type RouteMapProps = {
 function toLeafletPosition(coords: number[]): Coordinates {
   return [coords[1], coords[0]];
 }
+
+const markerIcon = L.icon({
+  iconUrl: markerImage,
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+});
 
 export const RouteMap = ({
   coordinates,
@@ -61,7 +70,7 @@ export const RouteMap = ({
 
       <Polyline positions={routePositions} />
 
-      <Marker position={current}>
+      <Marker position={current} icon={markerIcon}>
         <Tooltip permanent direction="top" offset={[0, -20]}>
           {locations.current}
         </Tooltip>
@@ -73,7 +82,7 @@ export const RouteMap = ({
         </Popup>
       </Marker>
 
-      <Marker position={pickup}>
+      <Marker position={pickup} icon={markerIcon}>
         <Tooltip permanent direction="top" offset={[0, -20]}>
           {locations.pickup}
         </Tooltip>
@@ -85,7 +94,7 @@ export const RouteMap = ({
         </Popup>
       </Marker>
 
-      <Marker position={dropoff}>
+      <Marker position={dropoff} icon={markerIcon}>
         <Tooltip permanent direction="top" offset={[0, -20]}>
           {locations.dropoff}
         </Tooltip>
@@ -99,5 +108,3 @@ export const RouteMap = ({
     </MapContainer>
   );
 };
-
-// export default RouteMap;
