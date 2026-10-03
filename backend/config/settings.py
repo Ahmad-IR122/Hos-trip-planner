@@ -40,7 +40,7 @@ DEBUG = True
 
 
 ALLOWED_HOSTS = [
-    "hos-trip-planner-pp81.onrender.com",
+    "https://hos-trip-planner.netlify.app/",
     "localhost",
     "127.0.0.1",
 ]
