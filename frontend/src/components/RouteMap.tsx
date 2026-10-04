@@ -9,6 +9,9 @@ import {
 } from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
+import defaultMarkerIcon from "leaflet/dist/images/marker-icon.png";
+import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import markerImage from "../assets/marker.svg";
 
 type Coordinates = [number, number];
@@ -37,6 +40,12 @@ const markerIcon = L.icon({
   iconSize: [32, 32],
   iconAnchor: [16, 32],
   popupAnchor: [0, -32],
+});
+
+L.Icon.Default.mergeOptions({
+  iconUrl: defaultMarkerIcon,
+  iconRetinaUrl: markerIcon2x,
+  shadowUrl: markerShadow,
 });
 
 L.Marker.prototype.options.icon = markerIcon;
